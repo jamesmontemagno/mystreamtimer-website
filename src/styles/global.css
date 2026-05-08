@@ -538,6 +538,12 @@ h3 {
     gap: 0.75rem;
   }
 
+  .header-inner {
+    display: grid;
+    gap: 0.75rem;
+    grid-template-columns: 1fr;
+  }
+
   .brand-block {
     width: 100%;
   }
