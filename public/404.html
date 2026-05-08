@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="robots" content="noindex" />
+    <title>Redirecting | My Stream Timer</title>
+    <script>
+      sessionStorage.setItem(
+        "mystreamtimer.redirect-path",
+        location.pathname + location.search + location.hash
+      );
+      location.replace("/");
+    </script>
+  </head>
+  <body></body>
+</html>

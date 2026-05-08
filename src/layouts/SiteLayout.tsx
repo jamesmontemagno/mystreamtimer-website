@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { NavLink, Outlet, useLocation, Link } from "react-router-dom";
+import { seoEntries, siteMetadata, type SeoEntry } from "../content/siteContent";
 
 const navItems = [
   { to: "/download", label: "Download" },
@@ -11,6 +12,49 @@ const navItems = [
 type ThemeMode = "system" | "light" | "dark";
 
 const THEME_STORAGE_KEY = "mystreamtimer-theme-mode";
+
+function getCanonicalUrl(path: string) {
+  return path === "/" ? `${siteMetadata.siteUrl}/` : `${siteMetadata.siteUrl}${path}`;
+}
+
+function upsertMeta(selector: string, attributes: Record<string, string>) {
+  let meta = document.head.querySelector<HTMLMetaElement>(selector);
+
+  if (!meta) {
+    meta = document.createElement("meta");
+    document.head.append(meta);
+  }
+
+  Object.entries(attributes).forEach(([key, value]) => {
+    meta.setAttribute(key, value);
+  });
+}
+
+function upsertLink(selector: string, attributes: Record<string, string>) {
+  let link = document.head.querySelector<HTMLLinkElement>(selector);
+
+  if (!link) {
+    link = document.createElement("link");
+    document.head.append(link);
+  }
+
+  Object.entries(attributes).forEach(([key, value]) => {
+    link.setAttribute(key, value);
+  });
+}
+
+function upsertJsonLd(selector: string, json: object) {
+  let script = document.head.querySelector<HTMLScriptElement>(selector);
+
+  if (!script) {
+    script = document.createElement("script");
+    script.type = "application/ld+json";
+    script.setAttribute("data-seo-schema", "website");
+    document.head.append(script);
+  }
+
+  script.textContent = JSON.stringify(json);
+}
 
 function getInitialThemeMode(): ThemeMode {
   if (typeof window === "undefined") {
@@ -29,6 +73,13 @@ export function SiteLayout() {
   const location = useLocation();
   const [themeMode, setThemeMode] = useState<ThemeMode>(getInitialThemeMode);
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
+  const notFoundSeo = seoEntries["/404"];
+
+  if (!notFoundSeo) {
+    throw new Error("Missing 404 SEO entry");
+  }
+
+  const seoEntry: SeoEntry = seoEntries[location.pathname] ?? notFoundSeo;
 
   const resolvedTheme = useMemo(() => {
     if (themeMode === "system") {
@@ -83,6 +134,92 @@ export function SiteLayout() {
       mediaQuery.removeEventListener("change", handleChange);
     };
   }, []);
+
+  useEffect(() => {
+    const canonicalUrl = getCanonicalUrl(seoEntry.path);
+    const robots = seoEntry.robots ?? "index, follow";
+
+    document.title = seoEntry.title;
+
+    upsertMeta('meta[name="description"]', {
+      name: "description",
+      content: seoEntry.description
+    });
+    upsertMeta('meta[name="robots"]', {
+      name: "robots",
+      content: robots
+    });
+    upsertMeta('meta[property="og:type"]', {
+      property: "og:type",
+      content: "website"
+    });
+    upsertMeta('meta[property="og:site_name"]', {
+      property: "og:site_name",
+      content: siteMetadata.siteName
+    });
+    upsertMeta('meta[property="og:title"]', {
+      property: "og:title",
+      content: seoEntry.title
+    });
+    upsertMeta('meta[property="og:description"]', {
+      property: "og:description",
+      content: seoEntry.description
+    });
+    upsertMeta('meta[property="og:url"]', {
+      property: "og:url",
+      content: canonicalUrl
+    });
+    upsertMeta('meta[property="og:image"]', {
+      property: "og:image",
+      content: siteMetadata.defaultSocialImage
+    });
+    upsertMeta('meta[property="og:image:alt"]', {
+      property: "og:image:alt",
+      content: siteMetadata.defaultSocialImageAlt
+    });
+    upsertMeta('meta[name="twitter:card"]', {
+      name: "twitter:card",
+      content: "summary_large_image"
+    });
+    upsertMeta('meta[name="twitter:title"]', {
+      name: "twitter:title",
+      content: seoEntry.title
+    });
+    upsertMeta('meta[name="twitter:description"]', {
+      name: "twitter:description",
+      content: seoEntry.description
+    });
+    upsertMeta('meta[name="twitter:image"]', {
+      name: "twitter:image",
+      content: siteMetadata.defaultSocialImage
+    });
+    upsertLink('link[rel="canonical"]', {
+      rel: "canonical",
+      href: canonicalUrl
+    });
+    upsertJsonLd('script[data-seo-schema="website"]', {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      name: siteMetadata.siteName,
+      applicationCategory: "MultimediaApplication",
+      operatingSystem: "macOS, Windows",
+      description: siteMetadata.defaultDescription,
+      url: siteMetadata.siteUrl,
+      image: siteMetadata.defaultSocialImage,
+      offers: [
+        {
+          "@type": "Offer",
+          category: "macOS",
+          url: "https://mystreamtimer.com/download"
+        },
+        {
+          "@type": "Offer",
+          category: "Windows",
+          url: "https://mystreamtimer.com/download"
+        }
+      ]
+    });
+  }, [seoEntry]);
 
   return (
     <div className="site-shell">

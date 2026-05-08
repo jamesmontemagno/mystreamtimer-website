@@ -4,6 +4,13 @@ import { BrowserRouter } from "react-router-dom";
 import App from "./App";
 import "./styles/global.css";
 
+const redirectedPath = window.sessionStorage.getItem("mystreamtimer.redirect-path");
+
+if (redirectedPath) {
+  window.sessionStorage.removeItem("mystreamtimer.redirect-path");
+  window.history.replaceState(null, "", redirectedPath);
+}
+
 const rootElement = document.getElementById("root");
 
 if (!rootElement) {

@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="My Stream Timer icon">
+  <rect width="64" height="64" rx="10" fill="#0f172a" />
+  <rect x="5" y="5" width="54" height="14" rx="3" fill="#0ea5e9" />
+  <text
+    x="32"
+    y="45"
+    text-anchor="middle"
+    font-family="Segoe UI, sans-serif"
+    font-size="22"
+    font-weight="700"
+    fill="#f8fafc"
+  >
+    MST
+  </text>
+</svg>

@@ -14,6 +14,63 @@ export type ScreenshotEntry = {
   caption: string;
 };
 
+export type SeoEntry = {
+  title: string;
+  description: string;
+  path: string;
+  robots?: string;
+};
+
+export const siteMetadata = {
+  siteName: "My Stream Timer",
+  siteUrl: "https://mystreamtimer.com",
+  defaultTitle: "My Stream Timer | Countdown Timer for OBS, SLOBS, and Stream Deck",
+  defaultDescription:
+    "My Stream Timer is a countdown and count-up timer app for live creators with OBS and SLOBS file output, Stream Deck triggers, and downloadable apps for macOS and Windows.",
+  defaultSocialImage:
+    "https://mystreamtimer.apporeum.com/media/baa7e66f-dad4-4d3f-b2b5-7de474c9315f/56edca9e-b4cf-4d9c-99ff-5b1f58ae3f4c.png",
+  defaultSocialImageAlt: "My Stream Timer main interface"
+} as const;
+
+export const seoEntries: Readonly<Record<string, SeoEntry>> = {
+  "/": {
+    title: siteMetadata.defaultTitle,
+    description: siteMetadata.defaultDescription,
+    path: "/"
+  },
+  "/download": {
+    title: "Download My Stream Timer for macOS and Windows",
+    description:
+      "Download My Stream Timer from the Apple App Store or Microsoft Store and set up precision countdown overlays for your live stream workflow.",
+    path: "/download"
+  },
+  "/screenshots": {
+    title: "My Stream Timer Screenshots and Overlay Examples",
+    description:
+      "Browse My Stream Timer screenshots to see timer controls, overlay-ready output, and the app interface used in live production setups.",
+    path: "/screenshots"
+  },
+  "/support": {
+    title: "My Stream Timer Support and Troubleshooting",
+    description:
+      "Get My Stream Timer support, troubleshooting guidance for OBS and SLOBS file output, and contact details for help with setup issues.",
+    path: "/support"
+  },
+  "/privacy": {
+    title: "My Stream Timer Privacy Policy",
+    description:
+      "Read the My Stream Timer privacy policy covering data collection, third-party sharing, and how Refractored LLC handles website and app privacy.",
+    path: "/privacy"
+  },
+  "/404": {
+    title: "Page Not Found | My Stream Timer",
+    description:
+      "The page you requested could not be found. Return to the My Stream Timer homepage or browse screenshots and download information.",
+    path: "/404",
+    robots: "noindex, nofollow"
+  }
+} as const;
+
 export const storeLinks = {
   apple:
     "https://itunes.apple.com/us/app/my-stream-timer/id1460539461?mt=12",
