@@ -602,6 +602,26 @@ h3 {
   flex-wrap: wrap;
 }
 
+.footer-note {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-strong);
+  color: var(--muted);
+  padding: 0.4rem 0.7rem;
+}
+
+.footer-note a {
+  color: var(--primary-dark);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.footer-note a:focus-visible {
+  outline: none;
+  border-radius: 4px;
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+
 .footer-controls {
   display: flex;
   gap: 0.8rem;
@@ -707,6 +727,11 @@ h3 {
     width: 100%;
     display: grid;
     gap: 0.35rem;
+  }
+
+  .footer-note {
+    border-radius: 12px;
+    text-align: center;
   }
 
   .footer-links a {
