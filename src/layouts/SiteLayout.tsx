@@ -271,6 +271,13 @@ export function SiteLayout() {
       <footer className="site-footer">
         <div className="container footer-content">
           <p>Copyright Refractored LLC</p>
+          <p className="footer-note">
+            Find more tiny tools like this at{" "}
+            <a href="https://www.tinytooltown.com/" target="_blank" rel="noreferrer">
+              Tiny Tool Town
+            </a>
+            .
+          </p>
           <div className="footer-controls">
             <div className="footer-links">
               <NavLink to="/download">Download</NavLink>
