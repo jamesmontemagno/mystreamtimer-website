@@ -1,12 +1,12 @@
 {
   "name": "My Stream Timer",
-  "short_name": "MST",
-  "description": "Countdown and count-up timer app for live creators using OBS and SLOBS overlays.",
+  "short_name": "Stream Timer",
+  "description": "Countdown, count-up, and clock overlays for OBS and Streamlabs on macOS and Windows, with an official Stream Deck plugin.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#0f172a",
-  "theme_color": "#0f172a",
+  "background_color": "#0b0714",
+  "theme_color": "#0b0714",
   "icons": [
     {
       "src": "/android-chrome-192x192.png",

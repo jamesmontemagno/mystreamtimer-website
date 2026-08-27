@@ -1,77 +1,34 @@
-import { useEffect, useState } from "react";
-import { screenshotItems } from "../content/siteContent";
+import { useState } from "react";
+import { PlatformTabs } from "../components/PlatformTabs";
+import { ScreenshotGallery } from "../components/ScreenshotGallery";
+import { platformLabels, screenshotItems, type Platform } from "../content/siteContent";
 
 export function ScreenshotsPage() {
-  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
-
-  useEffect(() => {
-    if (selectedIndex === null) {
-      return;
-    }
-
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setSelectedIndex(null);
-      }
-    };
-
-    window.addEventListener("keydown", onKeyDown);
-
-    return () => {
-      window.removeEventListener("keydown", onKeyDown);
-    };
-  }, [selectedIndex]);
-
-  const selectedItem = selectedIndex === null ? null : screenshotItems[selectedIndex];
+  const [platform, setPlatform] = useState<Platform>("mac");
+  const items = screenshotItems.filter((item) => item.platform === platform);
 
   return (
     <div className="page-stack">
-      <section className="content-panel">
-        <h1>Product screenshots</h1>
-        <p>
-          A quick visual tour of My Stream Timer workflows for overlays, controls, and
-          scene-ready output.
-        </p>
-      </section>
-
-      <section className="gallery-grid" aria-label="Screenshot gallery">
-        {screenshotItems.map((item, index) => (
-          <figure className="shot-card" key={item.src}>
-            <button
-              type="button"
-              className="shot-trigger"
-              onClick={() => setSelectedIndex(index)}
-              aria-label={`Open ${item.alt} in a larger view`}
-            >
-              <img src={item.src} alt={item.alt} loading="lazy" />
-            </button>
-            <figcaption>{item.caption}</figcaption>
-          </figure>
-        ))}
-      </section>
-
-      {selectedItem ? (
-        <div
-          className="lightbox"
-          role="dialog"
-          aria-modal="true"
-          aria-label={`Large view: ${selectedItem.alt}`}
-          onClick={() => setSelectedIndex(null)}
-        >
-          <div className="lightbox-content" onClick={(event) => event.stopPropagation()}>
-            <button
-              type="button"
-              className="lightbox-close"
-              onClick={() => setSelectedIndex(null)}
-              aria-label="Close screenshot preview"
-            >
-              ×
-            </button>
-            <img src={selectedItem.src} alt={selectedItem.alt} className="lightbox-image" />
-            <p className="lightbox-caption">{selectedItem.caption}</p>
-          </div>
+      <section className="tabs-header" aria-labelledby="shots-title">
+        <div className="section-header" style={{ marginBottom: 0 }}>
+          <p className="eyebrow">Screenshots</p>
+          <h1 id="shots-title">
+            A look at <span className="gradient-text">{platformLabels[platform]}.</span>
+          </h1>
+          <p className="lede">
+            Timer dashboard, pop-out overlays, OBS integration, the Current Time clock,
+            and the Automation command builder. Click any image for a closer look.
+          </p>
         </div>
-      ) : null}
+        <PlatformTabs value={platform} onChange={setPlatform} label="Choose a platform" />
+      </section>
+
+      <section aria-label={`${platformLabels[platform]} screenshot gallery`}>
+        <ScreenshotGallery
+          items={items}
+          label={`${platformLabels[platform]} screenshots`}
+        />
+      </section>
     </div>
   );
 }

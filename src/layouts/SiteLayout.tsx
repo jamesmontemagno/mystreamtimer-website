@@ -1,15 +1,22 @@
-import { useEffect, useMemo, useState } from "react";
-import { NavLink, Outlet, useLocation, Link } from "react-router-dom";
-import { seoEntries, siteMetadata, type SeoEntry } from "../content/siteContent";
+import { useEffect, useState } from "react";
+import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
+import {
+  seoEntries,
+  siteMetadata,
+  storeLinks,
+  type SeoEntry
+} from "../content/siteContent";
+import { Icon } from "../components/Icon";
 
 const navItems = [
   { to: "/download", label: "Download" },
+  { to: "/streamdeck", label: "Stream Deck" },
+  { to: "/automation", label: "Automation" },
   { to: "/screenshots", label: "Screenshots" },
-  { to: "/support", label: "Support" },
-  { to: "/privacy", label: "Privacy" }
+  { to: "/support", label: "Support" }
 ] as const;
 
-type ThemeMode = "system" | "light" | "dark";
+type ThemeMode = "light" | "dark";
 
 const THEME_STORAGE_KEY = "mystreamtimer-theme-mode";
 
@@ -43,13 +50,14 @@ function upsertLink(selector: string, attributes: Record<string, string>) {
   });
 }
 
-function upsertJsonLd(selector: string, json: object) {
+function upsertJsonLd(schemaId: string, json: object) {
+  const selector = `script[data-seo-schema="${schemaId}"]`;
   let script = document.head.querySelector<HTMLScriptElement>(selector);
 
   if (!script) {
     script = document.createElement("script");
     script.type = "application/ld+json";
-    script.setAttribute("data-seo-schema", "website");
+    script.setAttribute("data-seo-schema", schemaId);
     document.head.append(script);
   }
 
@@ -58,15 +66,16 @@ function upsertJsonLd(selector: string, json: object) {
 
 function getInitialThemeMode(): ThemeMode {
   if (typeof window === "undefined") {
-    return "system";
+    return "dark";
   }
 
-  const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
-  if (stored === "light" || stored === "dark" || stored === "system") {
-    return stored;
-  }
+  // Dark is the brand default; light is opt-in via the header toggle.
+  return window.localStorage.getItem(THEME_STORAGE_KEY) === "light" ? "light" : "dark";
+}
 
-  return "system";
+function applyTheme(theme: ThemeMode) {
+  document.documentElement.dataset.theme = theme;
+  document.documentElement.style.colorScheme = theme;
 }
 
 export function SiteLayout() {
@@ -81,45 +90,22 @@ export function SiteLayout() {
 
   const seoEntry: SeoEntry = seoEntries[location.pathname] ?? notFoundSeo;
 
-  const resolvedTheme = useMemo(() => {
-    if (themeMode === "system") {
-      return window.matchMedia("(prefers-color-scheme: dark)").matches
-        ? "dark"
-        : "light";
-    }
-
-    return themeMode;
-  }, [themeMode]);
-
   useEffect(() => {
     window.localStorage.setItem(THEME_STORAGE_KEY, themeMode);
-  }, [themeMode]);
-
-  useEffect(() => {
-    document.documentElement.dataset.theme = resolvedTheme;
-    document.documentElement.style.colorScheme = resolvedTheme;
-  }, [resolvedTheme]);
-
-  useEffect(() => {
-    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-
-    const handleChange = () => {
-      if (themeMode === "system") {
-        const nextResolved = mediaQuery.matches ? "dark" : "light";
-        document.documentElement.dataset.theme = nextResolved;
-        document.documentElement.style.colorScheme = nextResolved;
-      }
-    };
-
-    mediaQuery.addEventListener("change", handleChange);
-    return () => {
-      mediaQuery.removeEventListener("change", handleChange);
-    };
+    applyTheme(themeMode);
   }, [themeMode]);
 
   useEffect(() => {
     setIsMobileNavOpen(false);
-  }, [location.pathname]);
+    if (location.hash) {
+      const target = document.getElementById(location.hash.slice(1));
+      if (target) {
+        target.scrollIntoView();
+        return;
+      }
+    }
+    window.scrollTo({ top: 0 });
+  }, [location.pathname, location.hash]);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(max-width: 900px)");
@@ -145,14 +131,8 @@ export function SiteLayout() {
       name: "description",
       content: seoEntry.description
     });
-    upsertMeta('meta[name="robots"]', {
-      name: "robots",
-      content: robots
-    });
-    upsertMeta('meta[property="og:type"]', {
-      property: "og:type",
-      content: "website"
-    });
+    upsertMeta('meta[name="robots"]', { name: "robots", content: robots });
+    upsertMeta('meta[property="og:type"]', { property: "og:type", content: "website" });
     upsertMeta('meta[property="og:site_name"]', {
       property: "og:site_name",
       content: siteMetadata.siteName
@@ -165,10 +145,7 @@ export function SiteLayout() {
       property: "og:description",
       content: seoEntry.description
     });
-    upsertMeta('meta[property="og:url"]', {
-      property: "og:url",
-      content: canonicalUrl
-    });
+    upsertMeta('meta[property="og:url"]', { property: "og:url", content: canonicalUrl });
     upsertMeta('meta[property="og:image"]', {
       property: "og:image",
       content: siteMetadata.defaultSocialImage
@@ -193,54 +170,79 @@ export function SiteLayout() {
       name: "twitter:image",
       content: siteMetadata.defaultSocialImage
     });
-    upsertLink('link[rel="canonical"]', {
-      rel: "canonical",
-      href: canonicalUrl
-    });
-    upsertJsonLd('script[data-seo-schema="website"]', {
+    upsertLink('link[rel="canonical"]', { rel: "canonical", href: canonicalUrl });
+
+    upsertJsonLd("app", {
       "@context": "https://schema.org",
       "@type": "SoftwareApplication",
       name: siteMetadata.siteName,
       applicationCategory: "MultimediaApplication",
       operatingSystem: "macOS, Windows",
+      softwareVersion: "3.0",
       description: siteMetadata.defaultDescription,
       url: siteMetadata.siteUrl,
       image: siteMetadata.defaultSocialImage,
+      author: { "@type": "Organization", name: "Refractored LLC" },
       offers: [
         {
           "@type": "Offer",
+          price: "0",
+          priceCurrency: "USD",
           category: "macOS",
-          url: "https://mystreamtimer.com/download"
+          url: storeLinks.apple
         },
         {
           "@type": "Offer",
+          price: "0",
+          priceCurrency: "USD",
           category: "Windows",
-          url: "https://mystreamtimer.com/download"
+          url: storeLinks.microsoft
         }
       ]
     });
+
+    upsertJsonLd("plugin", {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      name: "My Stream Timer for Stream Deck",
+      applicationCategory: "UtilitiesApplication",
+      operatingSystem: "macOS, Windows",
+      softwareVersion: "2.0",
+      description:
+        "Official Stream Deck plugin to start and control My Stream Timer timers or run standalone file timers for OBS.",
+      url: `${siteMetadata.siteUrl}/streamdeck`,
+      ...(storeLinks.streamDeckPlugin
+        ? { downloadUrl: storeLinks.streamDeckPlugin }
+        : {}),
+      author: { "@type": "Organization", name: "Refractored LLC" }
+    });
   }, [seoEntry]);
+
+  const toggleTheme = () => {
+    setThemeMode((current) => (current === "dark" ? "light" : "dark"));
+  };
+
+  const themeLabel =
+    themeMode === "dark" ? "Switch to light theme" : "Switch to dark theme";
 
   return (
     <div className="site-shell">
+      <a className="skip-link" href="#main-content">
+        Skip to content
+      </a>
       <header className="site-header">
         <div className="container header-inner">
-          <div className="brand-block">
-            <Link to="/" className="brand-link">
-              <p className="brand">My Stream Timer</p>
-              <p className="brand-subtitle">A precision timer utility for live creators</p>
-            </Link>
-            <button
-              type="button"
-              className="mobile-nav-toggle"
-              aria-expanded={isMobileNavOpen}
-              aria-controls="primary-navigation"
-              aria-label="Toggle navigation menu"
-              onClick={() => setIsMobileNavOpen((current) => !current)}
-            >
-              <span aria-hidden="true">☰</span>
-            </button>
-          </div>
+          <Link to="/" className="brand-link" aria-label="My Stream Timer home">
+            <img
+              src="/icon-256.png"
+              alt=""
+              className="brand-icon"
+              width={34}
+              height={34}
+            />
+            <span>My Stream Timer</span>
+          </Link>
+
           <nav
             id="primary-navigation"
             className={isMobileNavOpen ? "site-nav is-open" : "site-nav"}
@@ -261,43 +263,122 @@ export function SiteLayout() {
               ))}
             </ul>
           </nav>
+
+          <div className="header-actions">
+            <button
+              type="button"
+              className="icon-button"
+              onClick={toggleTheme}
+              aria-label={themeLabel}
+              title={themeLabel}
+            >
+              <Icon name={themeMode === "dark" ? "sun" : "moon"} />
+            </button>
+            <Link
+              className="button button-primary button-small header-store"
+              to="/download"
+            >
+              Download
+            </Link>
+            <button
+              type="button"
+              className="icon-button mobile-nav-toggle"
+              aria-expanded={isMobileNavOpen}
+              aria-controls="primary-navigation"
+              aria-label="Toggle navigation menu"
+              onClick={() => setIsMobileNavOpen((current) => !current)}
+            >
+              <span aria-hidden="true">{isMobileNavOpen ? "✕" : "☰"}</span>
+            </button>
+          </div>
         </div>
       </header>
 
-      <main className="container page-main">
+      <main id="main-content" className="container page-main">
         <Outlet />
       </main>
 
       <footer className="site-footer">
-        <div className="container footer-content">
-          <p>Copyright Refractored LLC</p>
-          <p className="footer-note">
-            Find more tiny tools like this at{" "}
-            <a href="https://www.tinytooltown.com/" target="_blank" rel="noreferrer">
-              Tiny Tool Town
-            </a>
-            .
-          </p>
-          <div className="footer-controls">
-            <div className="footer-links">
-              <NavLink to="/download">Download</NavLink>
-              <a href="mailto:refractoredllc@gmail.com?subject=My%20Stream%20Timer%20Support">
-                Contact Support
-              </a>
+        <div className="container">
+          <div className="footer-grid">
+            <div className="footer-brand">
+              <Link to="/" className="brand-link">
+                <img
+                  src="/icon-256.png"
+                  alt=""
+                  className="brand-icon"
+                  width={34}
+                  height={34}
+                />
+                <span>My Stream Timer</span>
+              </Link>
+              <p>
+                Countdown, count-up, and clock overlays for live creators on macOS and
+                Windows, with an official Stream Deck plugin.
+              </p>
             </div>
-            <label className="theme-select-wrap" htmlFor="theme-mode">
-              <span>Theme</span>
-              <select
-                id="theme-mode"
-                className="theme-select"
-                value={themeMode}
-                onChange={(event) => setThemeMode(event.target.value as ThemeMode)}
-              >
-                <option value="system">System</option>
-                <option value="light">Light</option>
-                <option value="dark">Dark</option>
-              </select>
-            </label>
+            <div className="footer-col">
+              <h3>Product</h3>
+              <ul>
+                <li>
+                  <Link to="/download">Download</Link>
+                </li>
+                <li>
+                  <Link to="/streamdeck">Stream Deck plugin</Link>
+                </li>
+                <li>
+                  <Link to="/automation">Automation commands</Link>
+                </li>
+                <li>
+                  <Link to="/screenshots">Screenshots</Link>
+                </li>
+              </ul>
+            </div>
+            <div className="footer-col">
+              <h3>Resources</h3>
+              <ul>
+                <li>
+                  <Link to="/support">Support & FAQ</Link>
+                </li>
+                <li>
+                  <a href={storeLinks.github} target="_blank" rel="noreferrer">
+                    GitHub
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href={storeLinks.youtubeWalkthrough}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Video walkthrough
+                  </a>
+                </li>
+                <li>
+                  <a href={storeLinks.tinyToolTown} target="_blank" rel="noreferrer">
+                    More at Tiny Tool Town
+                  </a>
+                </li>
+              </ul>
+            </div>
+            <div className="footer-col">
+              <h3>Company</h3>
+              <ul>
+                <li>
+                  <a href={storeLinks.supportEmail}>Contact support</a>
+                </li>
+                <li>
+                  <Link to="/privacy">Privacy policy</Link>
+                </li>
+              </ul>
+            </div>
+          </div>
+          <div className="footer-bottom">
+            <p>© {new Date().getFullYear()} Refractored LLC. All rights reserved.</p>
+            <p>
+              Stream Deck is a trademark of Corsair Memory, Inc. OBS is a trademark of
+              Wizards of OBS LLC.
+            </p>
           </div>
         </div>
       </footer>
