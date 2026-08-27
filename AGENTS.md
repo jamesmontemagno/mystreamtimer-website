@@ -29,17 +29,21 @@ Notes:
 ## Source Layout
 
 - `src/main.tsx`: app bootstrap (`BrowserRouter`, global styles).
-- `src/routes/AppRoutes.tsx`: all route declarations.
-- `src/layouts/SiteLayout.tsx`: global shell (header/nav/footer/theme toggle).
+- `src/routes/AppRoutes.tsx`: all route declarations (`/`, `/download`, `/streamdeck`, `/automation`, `/screenshots`, `/support`, `/privacy`, 404).
+- `src/layouts/SiteLayout.tsx`: global shell (header/nav/footer/theme toggle, per-route SEO meta + JSON-LD).
 - `src/pages/*.tsx`: route page components.
-- `src/content/siteContent.ts`: content/data constants rendered by pages.
-- `src/styles/global.css`: shared styling and responsive behavior.
+- `src/components/*.tsx`: shared UI (`Icon`, `StoreBadges`, `PlatformTabs`, `ScreenshotGallery`, `CommandBuilder`, `TimerDemo`, `CopyButton`, `FeatureGrid`, `StreamDeckKeys`, `YouTubeEmbed`).
+- `src/content/siteContent.ts`: content/data constants rendered by pages (features, Stream Deck actions, automation verbs/targets, Pro tiers, changelog, FAQ, screenshots, links, SEO).
+- `src/styles/global.css`: design tokens (dark default, `[data-theme="light"]` override), components, responsive behavior.
+- `art/`: source brand art and raw screenshots (not served).
+- `scripts/generate-assets.py`: Pillow script that produces `public/screenshots/*`, favicons/app icons, and `public/og-image.png` from `art/`. Re-run after changing art: `python scripts/generate-assets.py [screenshots|icons|og]`.
 
 ## Project Conventions
 
-- Keep route components in `src/pages` and register new routes in `src/routes/AppRoutes.tsx`.
+- Keep route components in `src/pages` and register new routes in `src/routes/AppRoutes.tsx`; add a matching `seoEntries` record in `siteContent.ts` and a `<url>` in `public/sitemap.xml`.
 - Keep reusable/static content in `src/content/siteContent.ts` instead of hardcoding across multiple pages.
-- Use existing class naming patterns in `src/styles/global.css`.
+- `storeLinks.streamDeckPlugin` (`string | null`) is the single source for the plugin download URL. While `null`, `PluginDownloadLink`/`StoreBadges` render "Coming soon"; set it to the Marketplace URL to enable downloads.
+- Use existing class naming patterns in `src/styles/global.css`; dark theme is the default and light is opt-in via the header toggle.
 - Maintain strict TypeScript compatibility (`strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`).
 - Follow current style: double quotes, semicolons, and named exports for page/layout components.
 

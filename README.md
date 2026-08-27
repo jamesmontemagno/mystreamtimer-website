@@ -1,16 +1,13 @@
 # My Stream Timer Website
 
-TypeScript-first website rewrite scaffold for My Stream Timer.
+Marketing site for [My Stream Timer](https://mystreamtimer.com) — countdown, count-up, and clock
+overlays for OBS on macOS and Windows, plus the official Stream Deck plugin.
 
-## Current status
-
-- Infrastructure and templates are set up.
-- Full page content migration is intentionally deferred.
-- TypeScript is pinned to prerelease channel for TS7 adoption.
+Built with React 19, TypeScript, Vite, and react-router. Static output deployed to GitHub Pages.
 
 ## Local setup
 
-1. Install Node.js 22 LTS.
+1. Install Node.js 22 LTS and Python 3 (only needed to regenerate assets).
 2. Enable Corepack.
 3. Install dependencies and run checks.
 
@@ -23,14 +20,23 @@ pnpm run typecheck
 pnpm run build
 ```
 
-## Routes in template
+## Routes
 
-- /
-- /screenshots
-- /support
-- /privacy
-- /404
+- `/` — hero, live interactive timer demo, features, OBS setup, screenshots, Stream Deck, automation, Pro, what's new, video
+- `/download` — Mac App Store, Microsoft Store, Stream Deck plugin, Pro tiers
+- `/streamdeck` — official Stream Deck plugin 2.0
+- `/automation` — `mystreamtimer://` command reference and builder
+- `/screenshots` — macOS / Windows gallery
+- `/support` — troubleshooting and FAQ
+- `/privacy`
+- `/404`
+
+## Content and assets
+
+- All copy, links, and data live in `src/content/siteContent.ts`.
+- `storeLinks.streamDeckPlugin` is `null` until the Elgato Marketplace listing is live; the site shows "Coming soon" everywhere the plugin download appears. Set it to the URL to enable the links.
+- Source art lives in `art/`. Run `python scripts/generate-assets.py` (requires Pillow) to regenerate optimized screenshots, favicons, and `public/og-image.png`.
 
 ## Deployment
 
-GitHub Actions workflows are included for CI and GitHub Pages deploy from main.
+GitHub Actions workflows are included for CI and GitHub Pages deploy from `main`.

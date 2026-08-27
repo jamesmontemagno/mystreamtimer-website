@@ -16,9 +16,10 @@ user-invocable: true
 
 ## Primary Files
 
-- [src/content/siteContent.ts](../../../src/content/siteContent.ts): source of truth for most rendered text/content arrays.
+- [src/content/siteContent.ts](../../../src/content/siteContent.ts): source of truth for most rendered text/content arrays (`features`, `obsSteps`, `streamDeckActions`, `timerTargets`, `automationVerbs`, `automationExamples`, `proFeatures`, `proTiers`, `changelog`, `troubleshootingItems`, `faqItems`, `screenshotItems`, `storeLinks`, `seoEntries`).
 - [src/pages/HomePage.tsx](../../../src/pages/HomePage.tsx): consumes content collections for homepage sections.
-- [src/pages/ScreenshotsPage.tsx](../../../src/pages/ScreenshotsPage.tsx): consumes screenshot entries for gallery/lightbox.
+- [src/pages/ScreenshotsPage.tsx](../../../src/pages/ScreenshotsPage.tsx): consumes screenshot entries via `ScreenshotGallery`.
+- [scripts/generate-assets.py](../../../scripts/generate-assets.py): regenerates `public/screenshots/*` from `art/` when adding a screenshot (`python scripts/generate-assets.py screenshots`).
 
 ## Procedure
 
