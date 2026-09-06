@@ -164,8 +164,8 @@ export const seoEntries: Readonly<Record<string, SeoEntry>> = {
 export const storeLinks = {
   apple: "https://apps.apple.com/us/app/my-stream-timer/id1460539461?mt=12",
   microsoft: "https://apps.microsoft.com/detail/9n5nxx3wk7k7",
-  // Set to the Elgato Marketplace listing URL once published. While null, the site shows "Coming soon".
-  streamDeckPlugin: null as string | null,
+  streamDeckPlugin:
+    "https://marketplace.elgato.com/product/my-stream-timer-ef88347c-c332-4352-a73b-857308184ce4",
   github: "https://github.com/jamesmontemagno/MyStreamTimer",
   githubIssues: "https://github.com/jamesmontemagno/MyStreamTimer/issues",
   youtubeWalkthrough: "https://youtu.be/j_GdGIdDRxI",
